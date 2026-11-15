@@ -1,0 +1,21 @@
+{
+  "name": "country-search",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fgriff/country-search.git"
+  },
+  "keywords": [],
+  "author": "fgriff",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fgriff/country-search/issues"
+  },
+  "homepage": "https://github.com/fgriff/country-search#readme"
+}
