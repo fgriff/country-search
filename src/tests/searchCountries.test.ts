@@ -77,4 +77,33 @@ describe('searchCountries', () => {
 
     await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
   });
+
+  it('Пробрасывает TimeoutError при срабатывании таймаута', async () => {
+    const timeoutController = new AbortController();
+    const timeoutSpy = jest.spyOn(AbortSignal, 'timeout').mockReturnValue(timeoutController.signal);
+
+    const anySpy = jest.spyOn(AbortSignal, 'any');
+
+    mockFetch.mockImplementation((_url: string, options: RequestInit) => {
+      return new Promise((_, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          if (timeoutController.signal.aborted) {
+            reject(new DOMException('Timeout', 'TimeoutError'));
+          } else {
+            reject(new DOMException('Aborted', 'AbortError'));
+          }
+        });
+      });
+    });
+
+    const userSignal = new AbortController().signal;
+    const promise = searchCountries('spain', userSignal, 1000);
+
+    timeoutController.abort();
+
+    await expect(promise).rejects.toMatchObject({ name: 'TimeoutError' });
+
+    expect(timeoutSpy).toHaveBeenCalledWith(1000);
+    expect(anySpy).toHaveBeenCalledWith([userSignal, timeoutController.signal]);
+  });
 });
