@@ -60,4 +60,21 @@ describe('searchCountries', () => {
     const signal = new AbortController().signal;
     await expect(searchCountries('error', signal)).rejects.toThrow(HttpError);
   });
+
+  it('Пробрасывает AbortError, если сигнал отменен', async () => {
+    const controller = new AbortController();
+
+    mockFetch.mockImplementation((_url: string, options: RequestInit) => {
+      return new Promise((_, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      });
+    });
+
+    const promise = searchCountries('spain', controller.signal);
+    controller.abort();
+
+    await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+  });
 });

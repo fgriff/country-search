@@ -1,9 +1,9 @@
 import { HttpError } from './http-error.js';
 import { RawCountry } from './types.js';
 
-export async function searchCountries(query: string, signal: AbortSignal): Promise<RawCountry[]> {
+export async function searchCountries(query: string, _signal: AbortSignal): Promise<RawCountry[]> {
   const url = `https://countries.dev/name/${encodeURIComponent(query)}`;
-  const response = await fetch(url, { signal });
+  const response = await fetch(url);
 
   if (response.status === 404) {
     return [];
