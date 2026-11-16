@@ -140,6 +140,14 @@ body {
   gap: 20px;
 }
 
+.empty {
+  color: #888;
+  padding: 20px;
+  text-align: center;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
 @keyframes spin {
   0% {
     transform: rotate(0deg);
