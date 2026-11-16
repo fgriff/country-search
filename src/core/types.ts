@@ -33,3 +33,5 @@ export interface Country {
   borders: string[];
   currencies: string[];
 }
+
+export type ErrorType = 'aborted' | 'timeout' | 'http' | 'network' | 'unknown';
