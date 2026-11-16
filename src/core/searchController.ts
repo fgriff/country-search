@@ -1,7 +1,7 @@
+import { createSearchCache } from './cache.js';
 import { classifyError } from './classifyError.js';
 import { debounce } from './debounce.js';
 import { mapCountryResponse } from './mapCountryResponse.js';
-import { searchCountries } from './searchCountries.js';
 import { OnStateChange, SearchController } from './types.js';
 
 const DEFAULT_DELAY = 300;
@@ -13,11 +13,18 @@ export function createSearchController(
   let currentAbortController: AbortController | null = null;
   let lastQuery = '';
 
+  const cache = createSearchCache();
+
   const executeSearch = async (query: string): Promise<void> => {
+    if (currentAbortController) {
+      currentAbortController.abort();
+    }
+
     currentAbortController = new AbortController();
+    const signal = currentAbortController.signal;
 
     try {
-      const rawData = await searchCountries(query, currentAbortController.signal);
+      const rawData = await cache.get(query, signal);
 
       if (rawData.length === 0) {
         onStateChange({ type: 'empty' });
