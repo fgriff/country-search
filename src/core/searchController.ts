@@ -1,8 +1,81 @@
+import { classifyError } from './classifyError.js';
+import { debounce } from './debounce.js';
+import { mapCountryResponse } from './mapCountryResponse.js';
+import { searchCountries } from './searchCountries.js';
 import { OnStateChange, SearchController } from './types.js';
 
+const DEFAULT_DELAY = 300;
+
 export function createSearchController(
-  _onStateChange: OnStateChange,
-  _debounceDelay = 300,
+  onStateChange: OnStateChange,
+  debounceDelay = DEFAULT_DELAY,
 ): SearchController {
-  throw new Error('not implemented');
+  let currentAbortController: AbortController | null = null;
+  let lastQuery = '';
+
+  const executeSearch = async (query: string): Promise<void> => {
+    currentAbortController = new AbortController();
+
+    try {
+      const rawData = await searchCountries(query, currentAbortController.signal);
+
+      if (rawData.length === 0) {
+        onStateChange({ type: 'empty' });
+      } else {
+        const mapped = rawData.map(mapCountryResponse);
+        onStateChange({ type: 'success', data: mapped });
+      }
+    } catch (error) {
+      const errorType = classifyError(error);
+
+      if (errorType === 'aborted') {
+        return;
+      }
+
+      if (errorType === 'timeout') {
+        onStateChange({
+          type: 'error',
+          message: 'Превышено время ожидания ответа от сервера.',
+          lastQuery: query,
+        });
+        return;
+      }
+
+      onStateChange({
+        type: 'error',
+        message: 'Произошла ошибка при загрузке данных.',
+        lastQuery: query,
+      });
+    }
+  };
+
+  const debouncedSearch = debounce(executeSearch, debounceDelay);
+
+  const onInput = (query: string): void => {
+    const trimmed = query.trim();
+
+    if (currentAbortController) {
+      currentAbortController.abort();
+      currentAbortController = null;
+    }
+
+    if (!trimmed) {
+      lastQuery = '';
+      onStateChange({ type: 'idle' });
+      return;
+    }
+
+    lastQuery = trimmed;
+    onStateChange({ type: 'loading' });
+    debouncedSearch(trimmed);
+  };
+
+  const retry = (): void => {
+    if (lastQuery) {
+      onStateChange({ type: 'loading' });
+      executeSearch(lastQuery);
+    }
+  };
+
+  return { onInput, retry };
 }
