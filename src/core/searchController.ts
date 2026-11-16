@@ -35,7 +35,7 @@ export function createSearchController(
       if (errorType === 'timeout') {
         onStateChange({
           type: 'error',
-          message: 'Превышено время ожидания ответа от сервера.',
+          message: 'The server response timed out.',
           lastQuery: query,
         });
         return;
@@ -43,7 +43,7 @@ export function createSearchController(
 
       onStateChange({
         type: 'error',
-        message: 'Произошла ошибка при загрузке данных.',
+        message: 'An error occurred while loading data.',
         lastQuery: query,
       });
     }

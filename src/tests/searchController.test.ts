@@ -11,7 +11,7 @@ describe('SearchController', () => {
     mockFetch = jest.fn();
     global.fetch = mockFetch;
     mockOnStateChange = jest.fn();
-    controller = createSearchController(mockOnStateChange, 300); // Изменено
+    controller = createSearchController(mockOnStateChange, 300);
   });
 
   afterEach(() => {
