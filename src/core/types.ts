@@ -35,3 +35,17 @@ export interface Country {
 }
 
 export type ErrorType = 'aborted' | 'timeout' | 'http' | 'network' | 'unknown';
+
+export type AppState =
+  | { type: 'idle' }
+  | { type: 'loading' }
+  | { type: 'success'; data: Country[] }
+  | { type: 'empty' }
+  | { type: 'error'; message: string; lastQuery: string };
+
+export type OnStateChange = (state: AppState) => void;
+
+export interface SearchController {
+  onInput: (query: string) => void;
+  retry: () => void;
+}
