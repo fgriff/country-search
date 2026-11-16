@@ -1,0 +1,109 @@
+import { HttpError } from '../core/http-error';
+import { searchCountries } from '../core/searchCountries';
+import { RawCountry } from '../core/types';
+
+describe('searchCountries', () => {
+  const mockFetch = jest.fn();
+
+  beforeEach(() => {
+    mockFetch.mockReset();
+    global.fetch = mockFetch;
+  });
+
+  it('Возвращает массив стран при успешном ответе (200)', async () => {
+    const mockData: RawCountry[] = [
+      {
+        name: 'Spain',
+        flags: {
+          png: 'url',
+          svg: 'url',
+        },
+        region: 'Europe',
+        population: 1,
+        area: 1,
+      },
+    ];
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockData,
+    });
+
+    const signal = new AbortController().signal;
+    const result = await searchCountries('spain', signal);
+
+    expect(result).toEqual(mockData);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://countries.dev/name/spain',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it('Возвращает пустой массив при 404 (нет совпадений) — не ошибка', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+    });
+
+    const signal = new AbortController().signal;
+    const result = await searchCountries('unknown', signal);
+
+    expect(result).toEqual([]);
+  });
+
+  it('Бросает HttpError при 500', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    });
+
+    const signal = new AbortController().signal;
+    await expect(searchCountries('error', signal)).rejects.toThrow(HttpError);
+  });
+
+  it('Пробрасывает AbortError, если сигнал отменен', async () => {
+    const controller = new AbortController();
+
+    mockFetch.mockImplementation((_url: string, options: RequestInit) => {
+      return new Promise((_, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      });
+    });
+
+    const promise = searchCountries('spain', controller.signal);
+    controller.abort();
+
+    await expect(promise).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
+  it('Пробрасывает TimeoutError при срабатывании таймаута', async () => {
+    const timeoutController = new AbortController();
+    const timeoutSpy = jest.spyOn(AbortSignal, 'timeout').mockReturnValue(timeoutController.signal);
+
+    const anySpy = jest.spyOn(AbortSignal, 'any');
+
+    mockFetch.mockImplementation((_url: string, options: RequestInit) => {
+      return new Promise((_, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          if (timeoutController.signal.aborted) {
+            reject(new DOMException('Timeout', 'TimeoutError'));
+          } else {
+            reject(new DOMException('Aborted', 'AbortError'));
+          }
+        });
+      });
+    });
+
+    const userSignal = new AbortController().signal;
+    const promise = searchCountries('spain', userSignal, 1000);
+
+    timeoutController.abort();
+
+    await expect(promise).rejects.toMatchObject({ name: 'TimeoutError' });
+
+    expect(timeoutSpy).toHaveBeenCalledWith(1000);
+    expect(anySpy).toHaveBeenCalledWith([userSignal, timeoutController.signal]);
+  });
+});
