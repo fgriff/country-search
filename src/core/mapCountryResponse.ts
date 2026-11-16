@@ -8,7 +8,7 @@ export function mapCountryResponse(raw: RawCountry): Country {
     region: raw.region,
     population: raw.population,
     languages: raw.languages ? raw.languages.map((lang) => lang.name) : [],
-    area: raw.area,
+    area: raw.area ?? 0,
     borders: raw.borders ?? [],
     currencies: raw.currencies ? raw.currencies.map((curr) => curr.name) : [],
   };

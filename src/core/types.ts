@@ -6,7 +6,7 @@ export interface RawCountry {
   };
   region: string;
   population: number;
-  area: number;
+  area?: number;
   capital?: string;
   languages?: Array<{
     name: string;

@@ -31,8 +31,14 @@ function createDetailFields(country: Country): HTMLElement {
   details.className = 'modal__details';
 
   const fields = [
-    { label: 'Area', value: `${country.area.toLocaleString()} km²` },
-    { label: 'Borders', value: country.borders.length > 0 ? country.borders.join(', ') : 'None' },
+    {
+      label: 'Area',
+      value: country.area ? `${country.area.toLocaleString()} km²` : 'No data',
+    },
+    {
+      label: 'Borders',
+      value: country.borders.length > 0 ? country.borders.join(', ') : 'None',
+    },
     {
       label: 'Languages',
       value: country.languages.length > 0 ? country.languages.join(', ') : 'None',
