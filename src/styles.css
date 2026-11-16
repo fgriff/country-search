@@ -226,6 +226,32 @@ body {
 .modal__content button:hover {
   background-color: #000;
 }
+.history__wrapper {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.history__title {
+  font-size: 14px;
+  color: #666;
+}
+
+.history__btn {
+  background: #e9ecef;
+  border: 1px solid #ced4da;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.history__btn:hover {
+  background: #dee2e6;
+}
 @keyframes spin {
   0% {
     transform: rotate(0deg);

@@ -1,6 +1,7 @@
 import { createSearchCache } from './cache.js';
 import { classifyError } from './classifyError.js';
 import { debounce } from './debounce.js';
+import { addToHistory } from './history.js';
 import { mapCountryResponse } from './mapCountryResponse.js';
 import { OnStateChange, SearchController } from './types.js';
 
@@ -30,6 +31,9 @@ export function createSearchController(
         onStateChange({ type: 'empty' });
       } else {
         const mapped = rawData.map(mapCountryResponse);
+
+        addToHistory(query);
+
         onStateChange({ type: 'success', data: mapped });
       }
     } catch (error) {

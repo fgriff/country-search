@@ -10,24 +10,19 @@ describe('SearchController', () => {
   let controller: SearchController;
   let mockFetch: jest.Mock;
   let mockOnStateChange: jest.Mock;
-  let unhandledRejectionHandler: (reason: unknown, promise: Promise<unknown>) => void;
 
   beforeEach(() => {
     jest.useFakeTimers();
     mockFetch = jest.fn();
     global.fetch = mockFetch;
     mockOnStateChange = jest.fn();
-
-    unhandledRejectionHandler = () => {};
-    process.on('unhandledRejection', unhandledRejectionHandler);
-
+    localStorage.clear();
     controller = createSearchController(mockOnStateChange, 300);
   });
 
   afterEach(() => {
     jest.useRealTimers();
     jest.restoreAllMocks();
-    process.off('unhandledRejection', unhandledRejectionHandler);
   });
 
   it('При пустом вводе переходит в состояние idle', () => {
@@ -56,14 +51,18 @@ describe('SearchController', () => {
   it('Отменяет предыдущий запрос при новом вводе', () => {
     const abortSpy = jest.spyOn(AbortController.prototype, 'abort');
 
-    mockFetch.mockImplementation(() => new Promise(() => {}));
+    mockFetch.mockImplementation((_url, options) => {
+      return new Promise((_resolve, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      });
+    });
 
     controller.onInput('sp');
     jest.advanceTimersByTime(300);
 
     controller.onInput('spain');
     expect(abortSpy).toHaveBeenCalled();
-
-    abortSpy.mockRestore();
   });
 });

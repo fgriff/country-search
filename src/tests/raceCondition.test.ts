@@ -21,6 +21,7 @@ describe('Race Condition', () => {
     jest.useFakeTimers();
     mockOnStateChange = jest.fn();
     fetchResolvers = [];
+    localStorage.clear();
 
     global.fetch = jest.fn().mockImplementation((url: string, options: RequestInit) => {
       const query = decodeURIComponent(url.split('/').pop()!);
@@ -76,15 +77,7 @@ describe('Race Condition', () => {
     fetchResolvers[1].resolve({
       ok: true,
       status: 200,
-      json: async () => [
-        {
-          name: 'Spain',
-          flags: { png: '' },
-          region: '',
-          population: 1,
-          area: 1,
-        },
-      ],
+      json: async () => [{ name: 'Spain', flags: { png: '' }, region: '', population: 1, area: 1 }],
     });
 
     await flushPromises();
@@ -98,13 +91,7 @@ describe('Race Condition', () => {
         ok: true,
         status: 200,
         json: async () => [
-          {
-            name: 'Spain (old)',
-            flags: { png: '' },
-            region: '',
-            population: 1,
-            area: 1,
-          },
+          { name: 'Spain (old)', flags: { png: '' }, region: '', population: 1, area: 1 },
         ],
       });
     } catch {
